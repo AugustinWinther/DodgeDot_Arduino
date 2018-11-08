@@ -13,6 +13,8 @@ int CS  = 6;  // CS pin of MAX7219 module
 int CLK = 5;  // CLK pin of MAX7219 module
 int maxInUse = 1;
 
+unsigned long timeNow = 0; //Used for pausing score stats at end of game
+
 int joyX  = A1;
 int joySw = A2;
 int valX  = 0;
@@ -327,17 +329,15 @@ void sendEnemy4()
   }
 }
 
-
 void gameOver()
 {
-  highScore = EEPROM.read(EEPROMhighscore);
-  lcd.clear();
-  bool stopVal = 1;
+  highScore = EEPROM.read(EEPROMhighscore); //Reads off the HighScore from local storage on Arduino
   m.clear();
-  
+
+  //Plays loosing og winning tone depending on if you beat the score
   if (score > highScore)
   {
-    EEPROM.write(EEPROMhighscore, score);
+    EEPROM.write(EEPROMhighscore, score); //Writes current score as highscore if it is higher than previous
     tone (3, NOTE_D5, 150);
     delay(150);
     tone (3, NOTE_E5, 150);
@@ -345,10 +345,7 @@ void gameOver()
     tone (3, NOTE_F5, 150);
     delay(150);
     tone (3, NOTE_G5,750);
-    lcd.setCursor(0,0);
-    lcd.print("NEW HIGH SCORE!");
-    lcd.setCursor(3,1);
-    lcd.print(score);
+    m.writeSprite(0,0,smileYes);
   } else if (score <= highScore)
   {
     tone (3, NOTE_G4, 150);
@@ -358,45 +355,63 @@ void gameOver()
     tone (3, NOTE_E4, 150);
     delay(150);
     tone (3, NOTE_D4,750);
-    
-    lcd.setCursor(0,0);
-    lcd.print("You got:");
-    lcd.setCursor(8,0);
-    lcd.print(score);
-    lcd.setCursor(0,1);
-    lcd.print("High score:");
-    lcd.setCursor(11,1);
-    lcd.print(highScore);
+    m.writeSprite(0,0,smileNo);
   }
-  
-  while (stopVal)
+
+  valSw = digitalRead(A2); //Cheks if joystick is pressed
+  while (valSw) //Goes into a loop until joystick is pressed
   {
-    if (score > highScore)
-    {
-      m.writeSprite(0,0,smileYes); 
-    } else if (score <= highScore)
-    {
-      m.writeSprite(0,0,smileNo);
+    lcd.clear();
+    
+    timeNow = millis();
+    valSw = digitalRead(A2); //Cheks if joystick is pressed
+    while ((millis() < timeNow + 2000) && valSw) //Shows score for 2sec
+    { 
+      if (score > highScore)
+      { 
+        lcd.setCursor(0,0);
+        lcd.print("NEW HIGH SCORE!");
+        lcd.setCursor(3,1);
+        lcd.print(score);
+      } else if (score <= highScore)
+      {
+        lcd.setCursor(0,0);
+        lcd.print("You got:");
+        lcd.setCursor(8,0);
+        lcd.print(score);
+        lcd.setCursor(0,1);
+        lcd.print("High score:");
+        lcd.setCursor(11,1);
+        lcd.print(highScore);
+      }
+      valSw = digitalRead(A2);
     }
 
-    //If joystick button is pressed, reset game
-    valSw = digitalRead(A2);
-    if (valSw == 0)
+    timeNow = millis();
+    valSw = digitalRead(A2); //Cheks if joystick is pressed
+    
+    while ((millis() < timeNow + 2000) && valSw) //Shows reset instruction for 2sec
     {
-      stopVal = 0;
-      anim = 1;
-      play = 1;
-      score = 0;
-      foeY  = 0; //Starts enemy at top
-      foeX  = posX;
-      foeY2 = 8; //Starts enemy at bottom to reset its postion
-      foeX2 = -1;
-      foeY3 = 8; //Starts enemy at bottom to reset its postion
-      foeX3 = -1;
-      foeY4 = 8; //Starts enemy at bottom to reset its postion
-      foeX4 = -1;
-      spd   = 80;
-      loop();
+      lcd.setCursor(0,0);
+      lcd.print("Press joystick");
+      lcd.setCursor(0,1);
+      lcd.print("to play again...");
+      valSw = digitalRead(A2);
     }
   }
+
+  //resets game when joystick is pressed
+  anim = 1;
+  play = 1;
+  score = 0;
+  foeY  = 0; //Starts enemy at top
+  foeX  = posX;
+  foeY2 = 8; //Starts enemy at bottom to reset its postion
+  foeX2 = -1;
+  foeY3 = 8; //Starts enemy at bottom to reset its postion
+  foeX3 = -1;
+  foeY4 = 8; //Starts enemy at bottom to reset its postion
+  foeX4 = -1;
+  spd   = 80;
+  loop();
 }
