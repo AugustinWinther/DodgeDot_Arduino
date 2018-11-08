@@ -19,9 +19,9 @@ int joyX  = A1;
 int joySw = A2;
 int valX  = 0;
 int valSw = 0;
-int posX  = 3; // Sets random start postition
+int posX  = 3; //Sets random start postition
 int foeY  = 0; //Starts enemy at top
-int foeX  = posX;
+int foeX  = posX; //Sets the first enemy to the players postion
 int foeY2 = 8; //Starts enemy at bottom to reset its postion
 int foeX2 = -1;
 int foeY3 = 8; //Starts enemy at bottom to reset its postion
@@ -29,7 +29,6 @@ int foeX3 = -1;
 int foeY4 = 8; //Starts enemy at bottom to reset its postion
 int foeX4 = -1;
 int spd   = 80;
-int sense = 50;
 int score = 0;
 int highScore;
 
@@ -54,46 +53,6 @@ char num3[] = {3, 7,
             0x2A,
             0x2A,
             0x3E,
-            };
-
-char num4[] = {3, 7,
-            0x0E,
-            0x08,
-            0x3E,
-            };
-
-char num5[] = {3, 7,
-            0x2E,
-            0x2A,
-            0x3A,
-            };
-
-char num6[] = {3, 7,
-            0x3E,
-            0x2A,
-            0x3A,
-            };
-
-char num7[] = {3, 7,
-            0x02,
-            0x02,
-            0x3E,
-            };
-char num8[] = {3, 7,
-            0x3E,
-            0x2A,
-            0x3E,
-            };
-
-char num9[] = {3, 7,
-            0x2E,
-            0x2A,
-            0x3E,
-            };
-
-char num0[] = {3, 7,
-            0x3E,
-            0x22,
             };
 
 char smileNo[] = {8, 8,
@@ -121,10 +80,10 @@ char smileYes[] = {8, 8,
 void setup() {
   m.init(); // MAX7219 initialization
   m.setIntensity(1); // initial led matrix intensity, 0-15
+  
   pinMode(2, OUTPUT);
   digitalWrite(2, LOW); // SETS PIN 2 to GND
-  pinMode(A2,INPUT_PULLUP);
-
+  pinMode(A2,INPUT_PULLUP); // SETS PULLUP FOR JOYSTICK SWITCH
   pinMode(12, OUTPUT); //SETS PIN 12 to 5V
   digitalWrite(12, HIGH);
   
@@ -134,25 +93,19 @@ void setup() {
   lcd.print("Press joystick");
   lcd.setCursor(0,1);
   lcd.print("to play...");
-
-  Serial.begin(9600);
-  
 }
 
 
 //MAIN PART OF PROGRAM
 void loop() 
 {
-  valSw = digitalRead(A2); 
- 
+  valSw = digitalRead(A2); //Reads joystic value
   if (valSw == 0)
   {
     play = 1;
-    lcd.clear();
-    
   }
   
-  while (play) //Starts loop
+  while (play) //Starts game
   {
     while (anim) //Start Countdown
     {
@@ -187,16 +140,16 @@ void loop()
   
   //Sends Enemy
     sendEnemy();
-    if (score > 9)
+    if (score > 9) //Sends another enemy
     {
       sendEnemy2();
-      if (score > 19)
+      if (score > 19)//Sends a thrid enemy
       {
         sendEnemy3();
-        if (score > 29)
+        if (score > 29)//Sends the fourth and last enemy
         {
           sendEnemy4();
-          if (score > 39)
+          if (score > 39)//Increses the speed of the game by 1millis until game spd is at 50
           {
             spdUp = 1;
           }
@@ -209,6 +162,7 @@ void loop()
   
   }
 }
+
 //POSTITIONS/MOVES THE DOT
 void dotPosition()
 {
@@ -371,7 +325,7 @@ void gameOver()
       { 
         lcd.setCursor(0,0);
         lcd.print("NEW HIGH SCORE!");
-        lcd.setCursor(3,1);
+        lcd.setCursor(7,1);
         lcd.print(score);
       } else if (score <= highScore)
       {
@@ -390,7 +344,7 @@ void gameOver()
     timeNow = millis();
     valSw = digitalRead(A2); //Cheks if joystick is pressed
     
-    while ((millis() < timeNow + 2000) && valSw) //Shows reset instruction for 2sec
+    while ((millis() < timeNow + 2000) && valSw) //Shows reselt instruction for 2sec
     {
       lcd.setCursor(0,0);
       lcd.print("Press joystick");
